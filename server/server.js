@@ -1,5 +1,6 @@
 require('./config/config');
 const express = require('express');
+const mongoose = require('mongoose');
 const app = express();
 const bodyParser = require('body-parser');
 
@@ -11,38 +12,22 @@ app.use(bodyParser.urlencoded({ extended: false }))
 // parse application/json
 app.use(bodyParser.json())
 //consultar registros
-app.get('/usuario', function (req, res) {
-  res.json('get usuario')
-});
-//crear registros
-app.post('/usuario', function (req, res) {
-  let body = req.body;
+app.use(require('./controladores/usuario'));
 
-  if (body.nombre === undefined) {
+//Conexion de la base de datos
 
-    res.status(400).json({
+mongoose.connect('mongodb://localhost:27017/cafe', { useNewUrlParser: true }, (err) => {
+  //aqui se va a definir un callback para ver si se puede o no abrir la Conexion
+  if (err) {
+    return res.status(400).json({
       ok: false,
-      mensaje:'El nombre es necesario'
+      err
     });
-  }else{
-  res.json({
-    persona: body
-  });
-}
-});
-//Actualizar
-app.put('/usuario/:id', function (req, res) {
-  let id = req.params.id;
-  res.json({
-    id
-  });
-});
-//Borrar, que normalmente solo se actualizan (eliminan)
-app.delete('/usuario', function (req, res) {
-  res.json('delete usuario')
+    }else{
+    console.log('Base de datos online');
+  }
 });
 
-
-app.listen(process.env.PORT, () =>{
+app.listen(process.env.PORT, ( ) =>{
   console.log("Escuchando por el puerto 3000");
 });
