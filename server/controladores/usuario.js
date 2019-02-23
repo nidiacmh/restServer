@@ -1,12 +1,42 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const Usuario = require('../models/usuario');
+const _ = require('underscore');
+var Usuario = require('../models/usuario');
 const app = express();
 
-app.get('/usuario', function(req, res, next) {
-  res.json('get usuario local!!!')
-  next()
+//encuentra todos los registros que se encuentran en la bd
+//En el find({aqui se agregan los parametros para buscar unos en especial})
+app.get('/usuarios', function(req, res, next) {
+  let desde = req.query.desde || 0;
+  desde = Number(desde);//para transformar en un numero
+  let limite = req.query.limite || 5;
+  limite = Number(limite);
+  Usuario.find({}, 'nombre email')
+          .skip(desde)//se salta los primeros 5
+          .limit(limite)
+          .exec((err, usuarios) => {
+            if (err) {
+              return res.status(400).json({
+                ok: false,
+                err
+              });
+            }
+            //En las {vas a anotar las condiciones, la misma que este en el find}
+            Usuario.count({}, (err, conteo) => {
+
+              res.json({
+                ok: true,
+                usuarios: usuarios,
+                cuantos: conteo
+
+              });
+            })
+
+          });
+  // next()  #---------> si le quitamos el next ya funciona
+  //no debe llevar next() para que imprima el res.json
 });
+
 //crear registros
 app.post('/usuario', function(req, res, next) {
   let body = req.body;
@@ -41,10 +71,10 @@ app.post('/usuario', function(req, res, next) {
 //Actualizar
 app.put('/usuario/:id', function(req, res, next) {
   let id = req.params.id;
-  let body = req.body;
-  //datos que lleva la funcion: (quien? id,objeto a actualizar, (callback que es el err, y quien me trae la informacion)
-
-  Usuario.findByIdAndUpdate(id, body,{ new: true}, (err, usuario, next) => {
+  let body = _.pick(req.body, ['nombre','email','img','role','estado']);
+//   datos que lleva la funcion: (quien? id,objeto a actualizar, (callback que es el err, y quien me trae la informacion)
+// pra hacer caso a las validaciones del esquema hay que agregar el run validators como true
+  Usuario.findByIdAndUpdate(id, body,{ new: true, runValidators: true}, (err, usuario, next) => {
 
     if (err) {
       return res.status(400).json({
@@ -52,15 +82,11 @@ app.put('/usuario/:id', function(req, res, next) {
         err
       });
     }
-
     res.json({
       ok: true,
       usuario: usuario
-
     });
-    next()
   });
-  next()
 });
 
 
