@@ -81,7 +81,7 @@ app.put('/usuario/:id', function(req, res, next) {
         ok: false,
         err
       });
-    }
+    };
     res.json({
       ok: true,
       usuario: usuario
@@ -91,9 +91,31 @@ app.put('/usuario/:id', function(req, res, next) {
 
 
 //Borrar, que normalmente solo se actualizan (eliminan)
-app.delete('/usuario', function(req, res, next) {
-  res.json('delete usuario')
-  next()
+app.delete('/usuario/:id', function(req, res, next) {
+  let id = req.params.id;
+
+  //eliminacion que deje de existir
+  Usuario.findByIdAndRemove(id, (err, usuarioBorrado, next) => {
+    if (err) {
+      return res.status(400).json({
+        ok: false,
+        err
+      });
+    };
+
+        if (!usuarioBorrado) {
+          return res.status(400).json({
+            ok: false,
+            err:{
+              message: 'Usuario no encontrado'
+            }
+          });
+        };
+    res.json({
+      ok: true,
+      usuario: usuarioBorrado
+    });
+  });
 });
 
 module.exports = app;
