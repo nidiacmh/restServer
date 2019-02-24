@@ -14,11 +14,14 @@ app.use(bodyParser.json())
 //consultar registros
 app.use(require('./controladores/usuario'));
 
+
+
 //Conexion de la base de datos
 
-mongoose.connect('mongodb://localhost:27017/cafe', { useNewUrlParser: true }, (err) => {
+mongoose.connect(process.env.URLDB, { useNewUrlParser: true }, (err) => {
   //aqui se va a definir un callback para ver si se puede o no abrir la Conexion
   if (err) {
+    console.log(err);
     return res.status(400).json({
       ok: false,
       err
