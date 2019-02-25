@@ -1,5 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const Usuario = require('../models/usuario');
 const app = express();
 
@@ -34,10 +35,14 @@ app.post('/login', (req, res, next) => {
       });
     }
 
+    let token = jwt.sign({
+      usuario: usuarioDB
+    }, 'secret', {expiresIn: process.env.CADUCIDAD_TOKEN});
+
     res.json({
       ok: true,
       usuario: usuarioDB,
-      token: '123'
+      token
     });
   })
 });
