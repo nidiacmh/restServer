@@ -2,11 +2,25 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const _ = require('underscore');
 var Usuario = require('../models/usuario');
+
+const {verificaToken} = require('../middlewares/autenticacion');
+const {verificaAdminrole} = require('../middlewares/autenticacion');
 const app = express();
 
 //encuentra todos los registros que se encuentran en la bd
 //En el find({aqui se agregan los parametros para buscar unos en especial})
-app.get('/usuarios', function(req, res, next) {
+app.get('/usuarios', verificaToken , (req, res, next) => {
+//------------------------------------------------------------------
+//Verifica que puedo obtener la informacion despues del Token
+//-----------------
+    //
+    // return res.json({
+    //   usuario: req.usuario,
+    //   nombre: req.usuario.nombre,
+    //   email: req.usuario.email
+    // })
+//-------------------------------------------------------------------
+
   let desde = req.query.desde || 0;
   desde = Number(desde);//para transformar en un numero
   let limite = req.query.limite || 5;
@@ -38,7 +52,7 @@ app.get('/usuarios', function(req, res, next) {
 });
 
 //crear registros
-app.post('/usuario', function(req, res, next) {
+app.post('/usuario', [verificaToken, verificaAdminrole] ,(req, res, next) => {
   let body = req.body;
 
   let usuario = new Usuario({
@@ -69,7 +83,7 @@ app.post('/usuario', function(req, res, next) {
 });
 
 //Actualizar
-app.put('/usuario/:id', function(req, res, next) {
+app.put('/usuario/:id', [verificaToken,verificaAdminrole] ,(req, res, next) => {
   let id = req.params.id;
   let body = _.pick(req.body, ['nombre','email','img','role','estado']);
 //   datos que lleva la funcion: (quien? id,objeto a actualizar, (callback que es el err, y quien me trae la informacion)
@@ -91,7 +105,7 @@ app.put('/usuario/:id', function(req, res, next) {
 
 
 //Borrar, que normalmente solo se actualizan (eliminan)
-app.delete('/usuario/:id', function(req, res, next) {
+app.delete('/usuario/:id', [verificaToken, verificaAdminrole] ,(req, res, next) => {
   let id = req.params.id;
 
   //------>eliminacion que deje de existir
